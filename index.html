@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f7fb">
+    <meta
+      name="description"
+      content="Explora cómo cambian los casos de una epidemia con el modelo SIR."
+    >
+    <title>Simulador SIR | Laboratorio de epidemias</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="Laboratorio SIR, inicio">
+        <span class="brand-mark" aria-hidden="true">SIR</span>
+        <span>Laboratorio de epidemias</span>
+      </a>
+      <span class="topbar-note"><span class="status-dot"></span> Modelo educativo</span>
+    </header>
+
+    <main class="page-shell">
+      <section class="intro">
+        <p class="eyebrow">SIMULADOR INTERACTIVO</p>
+        <h1>Entiende cómo se propaga<br class="desktop-break"> una epidemia</h1>
+        <p class="intro-copy">
+          Cambia los parámetros y observa cómo evoluciona la población entre
+          susceptibles, infectados y recuperados.
+        </p>
+      </section>
+
+      <div class="workspace">
+        <aside class="control-panel panel" aria-labelledby="controls-title">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">CONFIGURACIÓN</p>
+              <h2 id="controls-title">Parámetros</h2>
+            </div>
+            <span class="settings-icon" aria-hidden="true">⚙</span>
+          </div>
+
+          <form id="simulation-form" novalidate>
+            <label class="field" for="population">
+              <span class="field-title">Población total <span class="symbol">N</span></span>
+              <span class="field-hint">Personas en la comunidad simulada</span>
+              <span class="input-wrap">
+                <input id="population" name="population" type="number" min="10" max="1000000" step="10" value="1000" required>
+                <span>personas</span>
+              </span>
+            </label>
+
+            <label class="field" for="initial-infected">
+              <span class="field-title">Infectados iniciales <span class="symbol infected-symbol">I₀</span></span>
+              <span class="field-hint">Casos al comenzar el día cero</span>
+              <span class="input-wrap">
+                <input id="initial-infected" name="initial-infected" type="number" min="1" max="1000" step="1" value="10" required>
+                <span>personas</span>
+              </span>
+            </label>
+
+            <label class="field" for="beta">
+              <span class="field-title">Tasa de contagio <span class="symbol infected-symbol">β</span></span>
+              <span class="field-hint">Contagios potenciales por persona y día</span>
+              <span class="input-wrap">
+                <input id="beta" name="beta" type="number" min="0" max="2" step="0.01" value="0.30" required>
+                <span>por día</span>
+              </span>
+            </label>
+
+            <label class="field" for="gamma">
+              <span class="field-title">Tasa de recuperación <span class="symbol recovered-symbol">γ</span></span>
+              <span class="field-hint">Proporción que se recupera cada día</span>
+              <span class="input-wrap">
+                <input id="gamma" name="gamma" type="number" min="0" max="1" step="0.01" value="0.10" required>
+                <span>por día</span>
+              </span>
+            </label>
+
+            <label class="field" for="days">
+              <span class="field-title">Duración <span class="symbol">T</span></span>
+              <span class="field-hint">Tiempo total que se mostrará</span>
+              <span class="input-wrap">
+                <input id="days" name="days" type="number" min="1" max="365" step="1" value="160" required>
+                <span>días</span>
+              </span>
+            </label>
+
+            <p id="form-error" class="form-error" role="alert" hidden></p>
+            <button class="primary-button" type="submit">
+              <span aria-hidden="true">▶</span> Ejecutar simulación
+            </button>
+            <button class="text-button" id="reset-button" type="button">Restaurar valores iniciales</button>
+          </form>
+
+          <div class="model-note">
+            <span class="note-icon" aria-hidden="true">i</span>
+          </div>
+        </aside>
+
+        <section class="results" aria-label="Resultados de la simulación">
+          <div class="metric-grid" aria-live="polite">
+            <article class="metric-card">
+              <span class="metric-label">Pico de infectados</span>
+              <strong class="metric-value" id="peak-value">—</strong>
+              <span class="metric-detail" id="peak-day">personas en el punto máximo</span>
+              <span class="metric-icon icon-infected" aria-hidden="true">↗</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Recuperados al final</span>
+              <strong class="metric-value" id="recovered-value">—</strong>
+              <span class="metric-detail" id="recovered-share">del total de la población</span>
+              <span class="metric-icon icon-recovered" aria-hidden="true">✓</span>
+            </article>
+            <article class="metric-card">
+              <span class="metric-label">Número reproductivo inicial</span>
+              <strong class="metric-value" id="r0-value">—</strong>
+              <span class="metric-detail"></span>
+              <span class="metric-icon icon-r0" aria-hidden="true">R</span>
+            </article>
+          </div>
+
+          <article class="chart-card panel">
+            <div class="chart-heading">
+              <div>
+                <p class="eyebrow">EVOLUCIÓN EN EL TIEMPO</p>
+                <h2>Dinámica de la población</h2>
+              </div>
+              <span class="chart-unit">Personas</span>
+            </div>
+            <div class="chart-legend" aria-label="Series del gráfico">
+              <span><i class="legend-dot susceptible-dot"></i> Susceptibles (S)</span>
+              <span><i class="legend-dot infected-dot"></i> Infectados (I)</span>
+              <span><i class="legend-dot recovered-dot"></i> Recuperados (R)</span>
+            </div>
+            <div class="chart-container">
+              <canvas id="sir-chart" role="img" aria-label="Gráfico de susceptibles, infectados y recuperados a lo largo del tiempo"></canvas>
+              <div id="chart-tooltip" class="chart-tooltip" role="status" hidden></div>
+            </div>
+            <div class="chart-footer">
+              <span>Días desde el inicio</span>
+              <span id="population-check">La población total se conserva durante la simulación.</span>
+            </div>
+          </article>
+
+          <article class="explanation-card">
+            <div class="explanation-icon" aria-hidden="true">∑</div>
+            <div>
+              <h2>¿Qué estás viendo?</h2>
+              <p>
+                Cada persona pertenece a uno de tres grupos: <strong>S</strong> puede
+                contagiarse, <strong>I</strong> puede transmitir la infección y
+                <strong>R</strong> ya se recuperó. Las curvas muestran cómo cambian
+                esos grupos con el tiempo.
+              </p>
+            </div>
+          </article>
+        </section>
+      </div>
+      <footer class="page-footer">Una herramienta para aprender, experimentar y hacer preguntas.</footer>
+    </main>
+  </body>
+</html>
