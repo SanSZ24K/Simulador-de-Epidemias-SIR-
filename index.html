@@ -94,9 +94,6 @@
             <button class="text-button" id="reset-button" type="button">Restaurar valores iniciales</button>
           </form>
 
-          <div class="model-note">
-            <span class="note-icon" aria-hidden="true">i</span>
-          </div>
         </aside>
 
         <section class="results" aria-label="Resultados de la simulación">
@@ -144,6 +141,35 @@
             </div>
           </article>
 
+          <article class="map-card panel" aria-labelledby="map-title">
+            <div class="map-heading">
+              <div>
+                <p class="eyebrow">PROPAGACIÓN ILUSTRATIVA</p>
+                <h2 id="map-title">Infección en Tucumán</h2>
+              </div>
+              <span class="map-legend"><i aria-hidden="true"></i> Infectados</span>
+            </div>
+            <div class="map-visual">
+              <svg id="tucuman-map" viewBox="0 0 300 340" role="img" aria-label="Mapa de la provincia de Tucumán con puntos rojos proporcionales a las personas infectadas">
+                <path class="province-shape"></path>
+              </svg>
+              <canvas id="infection-canvas" aria-hidden="true"></canvas>
+            </div>
+            <div class="map-controls">
+              <label for="map-day-slider">
+                <span>Día de la simulación</span>
+                <output id="map-day-value" for="map-day-slider">0</output>
+              </label>
+              <input id="map-day-slider" type="range" min="0" max="160" step="1" value="0" aria-label="Seleccionar día de la simulación">
+              <div class="map-range-ends" aria-hidden="true">
+                <span>Día 0</span>
+                <span id="map-day-end">Día 160</span>
+              </div>
+            </div>
+            <p class="map-status" id="map-status" aria-live="polite"></p>
+            <p class="map-disclaimer">Los puntos muestran la proporción de infectados, no ubicaciones reales. Silueta basada en <a href="https://www.openstreetmap.org/relation/153558" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> (ODbL).</p>
+          </article>
+
           <article class="explanation-card">
             <div class="explanation-icon" aria-hidden="true">∑</div>
             <div>
@@ -160,5 +186,8 @@
       </div>
       <footer class="page-footer">Una herramienta para aprender, experimentar y hacer preguntas.</footer>
     </main>
+    <button class="back-to-top" id="back-to-top" type="button" aria-label="Volver a la parte superior" title="Volver arriba">
+      <span aria-hidden="true">↑</span>
+    </button>
   </body>
 </html>
