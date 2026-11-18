@@ -297,36 +297,6 @@ h1 {
   line-height: 1.5;
 }
 
-.model-note {
-  display: flex;
-  gap: 9px;
-  margin-top: 18px;
-  padding: 12px 10px;
-  border-radius: 8px;
-  background: #f5f8fd;
-}
-
-.note-icon {
-  flex: 0 0 16px;
-  display: grid;
-  width: 16px;
-  height: 16px;
-  place-items: center;
-  border: 1px solid #a8b7d0;
-  border-radius: 50%;
-  color: #7385a1;
-  font-family: Georgia, serif;
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.model-note p {
-  margin: 0;
-  color: #748198;
-  font-size: 10px;
-  line-height: 1.55;
-}
-
 .results {
   min-width: 0;
 }
@@ -486,6 +456,134 @@ h1 {
   font-size: 9px;
 }
 
+.map-card {
+  margin-top: 14px;
+  padding: 21px 20px 15px;
+  text-align: center;
+}
+
+.map-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+}
+
+.map-heading .eyebrow {
+  margin-bottom: 4px;
+}
+
+.map-heading h2 {
+  margin-bottom: 0;
+  font-family: "Manrope", "Segoe UI", sans-serif;
+  font-size: 17px;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+
+.map-legend {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #78859a;
+  font-size: 10px;
+}
+
+.map-legend i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #e85d62;
+}
+
+.map-visual {
+  position: relative;
+  width: min(100%, 210px);
+  aspect-ratio: 300 / 340;
+  margin: 8px auto 0;
+}
+
+#tucuman-map,
+#infection-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+#infection-canvas {
+  pointer-events: none;
+}
+
+.province-shape {
+  fill: #f0f4fb;
+  stroke: #9fb1ce;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.map-controls {
+  width: min(100%, 440px);
+  margin: 0 auto 12px;
+  text-align: left;
+}
+
+.map-controls label {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+  color: #53627a;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.map-controls output {
+  color: #426fd1;
+  font-variant-numeric: tabular-nums;
+}
+
+#map-day-slider {
+  display: block;
+  width: 100%;
+  height: 18px;
+  margin: 0;
+  accent-color: #4778e8;
+  cursor: pointer;
+}
+
+#map-day-slider:focus-visible {
+  outline: 3px solid #a9c1fb;
+  outline-offset: 3px;
+}
+
+.map-range-ends {
+  display: flex;
+  justify-content: space-between;
+  color: #929caf;
+  font-size: 9px;
+}
+
+.map-status {
+  margin: 0;
+  color: #53627a;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.map-disclaimer {
+  margin: 5px 0 0;
+  color: #929caf;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.map-disclaimer a {
+  color: #5479d1;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .explanation-card {
   display: flex;
   gap: 13px;
@@ -534,6 +632,45 @@ h1 {
   text-align: center;
 }
 
+.back-to-top {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 2;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid #dfe7f3;
+  border-radius: 50%;
+  background: #fff;
+  color: #426fd1;
+  box-shadow: 0 4px 14px rgb(32 54 88 / 14%);
+  cursor: pointer;
+  font-size: 22px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(8px);
+  transition: opacity 160ms ease, transform 160ms ease, visibility 160ms ease;
+  visibility: hidden;
+}
+
+.back-to-top.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  visibility: visible;
+}
+
+.back-to-top:hover {
+  background: #edf3ff;
+}
+
+.back-to-top:focus-visible {
+  outline: 3px solid #a9c1fb;
+  outline-offset: 3px;
+}
+
 @media (min-width: 1450px) {
   .page-shell {
     width: min(1220px, calc(100% - 72px));
@@ -574,6 +711,11 @@ h1 {
   .topbar {
     height: 58px;
     padding: 0 18px;
+  }
+
+  .back-to-top {
+    right: 16px;
+    bottom: 16px;
   }
 
   .brand {
@@ -633,6 +775,14 @@ h1 {
 
   .chart-card {
     padding: 18px 14px 13px;
+  }
+
+  .map-card {
+    padding: 18px 14px 13px;
+  }
+
+  .map-heading h2 {
+    font-size: 15px;
   }
 
   .chart-heading h2 {

@@ -17,10 +17,42 @@ const fields = {
   days: document.querySelector("#days"),
 };
 const errorMessage = document.querySelector("#form-error");
+const backToTopButton = document.querySelector("#back-to-top");
 const canvas = document.querySelector("#sir-chart");
 const chartContainer = document.querySelector(".chart-container");
 const tooltip = document.querySelector("#chart-tooltip");
+const tucumanMap = document.querySelector("#tucuman-map");
+const mapVisual = document.querySelector(".map-visual");
+const infectionCanvas = document.querySelector("#infection-canvas");
+const mapStatus = document.querySelector("#map-status");
+const mapDaySlider = document.querySelector("#map-day-slider");
+const mapDayValue = document.querySelector("#map-day-value");
+const mapDayEnd = document.querySelector("#map-day-end");
 const context = canvas.getContext("2d");
+const infectionContext = infectionCanvas.getContext("2d");
+const MAP_DOT_COUNT = 8000;
+const TUCUMAN_OUTLINE = [
+  [30, 85.2], [31.9, 87.9], [31, 107.9], [49, 103.1], [79.2, 124.8],
+  [72, 134.7], [69.3, 143.6], [75.3, 149.3], [75.3, 153.6], [67.4, 161.8],
+  [66.9, 166.7], [60.2, 169.5], [56.7, 180.5], [47.4, 186.6], [44.2, 196.6],
+  [39.5, 197.6], [35.3, 204.5], [59.2, 215.6], [59.3, 245], [67.2, 267.1],
+  [72.8, 267.6], [74.2, 270.1], [79.4, 289.4], [78.9, 295], [80.5, 290.3],
+  [84.3, 288.2], [83, 282.3], [90.5, 282.4], [97.3, 289.9], [97.7, 301],
+  [101.7, 307.2], [102.2, 313.3], [109.2, 313.5], [115.2, 320], [125.8, 306.3],
+  [137.3, 300.7], [145.6, 291.7], [172.5, 309.7], [171.4, 305], [174.2, 299],
+  [181.6, 301.5], [191.2, 299.3], [195.6, 281.3], [193.3, 273.3], [198.3, 277],
+  [192.5, 254.5], [202.9, 248.2], [194.9, 236], [206.2, 217.4], [217.2, 213.3],
+  [223.4, 187.3], [225.2, 187.6], [232.1, 165.2], [230.5, 164.9], [231.6, 159.3],
+  [237.6, 160.4], [243, 133.8], [250.1, 135.2], [254.7, 112.4], [266.8, 114.9],
+  [262.6, 73.9], [264.3, 65.6], [270, 58.2], [267.8, 44.2], [251.3, 46.9],
+  [250.1, 45.4], [244.5, 48.5], [226.3, 45.4], [218.5, 47.7], [214.6, 53.2],
+  [203.6, 58.1], [200.4, 53.5], [191, 55.2], [191, 46.3], [157.7, 37.4],
+  [154.5, 23.6], [147.5, 20.3], [144.7, 20.3], [135.6, 27.9], [130.8, 25.1],
+  [118.6, 24.5], [109.9, 30], [106.1, 28.1], [99.3, 29.1], [96.2, 43.1],
+  [97.2, 47.9], [94.2, 53.8], [96.6, 56.5], [94.4, 59], [95.1, 65.1],
+  [41.1, 44.9], [41.3, 49.6], [38, 53.4], [38.4, 68.9], [32.8, 72.6],
+  [33.4, 78.6],
+];
 const numberFormat = new Intl.NumberFormat("es-ES", {
   maximumFractionDigits: 0,
 });
@@ -30,6 +62,8 @@ const decimalFormat = new Intl.NumberFormat("es-ES", {
 
 let currentSimulation = null;
 let resizeObserver = null;
+let mapRenderFrame = 0;
+let pendingMapRender = null;
 
 function readParameters() {
   return {
@@ -104,6 +138,142 @@ function updateMetrics(result) {
     r0 = decimalFormat.format(result.beta / result.gamma);
   }
   document.querySelector("#r0-value").textContent = r0;
+}
+
+function isInsideTucuman(x, y) {
+  let inside = false;
+  for (let index = 0, previous = TUCUMAN_OUTLINE.length - 1; index < TUCUMAN_OUTLINE.length; previous = index, index += 1) {
+    const [currentX, currentY] = TUCUMAN_OUTLINE[index];
+    const [previousX, previousY] = TUCUMAN_OUTLINE[previous];
+    const crosses = (currentY > y) !== (previousY > y) &&
+      x < (previousX - currentX) * (y - currentY) / (previousY - currentY) + currentX;
+    if (crosses) {
+      inside = !inside;
+    }
+  }
+  return inside;
+}
+
+function configureTucumanMap() {
+  const pathData = `${TUCUMAN_OUTLINE.map(([x, y]) => `${x},${y}`).join(" ")} Z`;
+  tucumanMap.querySelector(".province-shape").setAttribute("d", `M${pathData}`);
+}
+
+function createInfectionDots() {
+  const dots = [];
+  let attempts = 0;
+
+  while (dots.length < MAP_DOT_COUNT && attempts < MAP_DOT_COUNT * 100) {
+    attempts += 1;
+    const x = 34 + Math.random() * (266 - 34);
+    const y = 24 + Math.random() * (316 - 24);
+    if (!isInsideTucuman(x, y)) {
+      continue;
+    }
+
+    dots.push({ x, y, radius: 1.4 + Math.random() * 1.1 });
+  }
+
+  if (dots.length !== MAP_DOT_COUNT) {
+    throw new Error(`No se pudieron crear los ${MAP_DOT_COUNT} puntos del mapa.`);
+  }
+
+  for (let index = dots.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [dots[index], dots[randomIndex]] = [dots[randomIndex], dots[index]];
+  }
+
+  return dots;
+}
+
+configureTucumanMap();
+const mapDots = createInfectionDots();
+
+function showMapSample(sample, result) {
+  scheduleMapRender(sample, result);
+  mapStatus.textContent =
+    `${numberFormat.format(sample.infected)} infectados en este día`;
+}
+
+function scheduleMapRender(sample, result) {
+  pendingMapRender = { sample, result };
+  if (mapRenderFrame) {
+    return;
+  }
+
+  mapRenderFrame = window.requestAnimationFrame(() => {
+    mapRenderFrame = 0;
+    const render = pendingMapRender;
+    pendingMapRender = null;
+    if (render) {
+      drawInfectionMap(render.sample, render.result);
+    }
+  });
+}
+
+function drawInfectionMap(sample, result) {
+  const activeDots = sample.infected > 0
+    ? Math.max(1, Math.round(sample.infected / result.population * MAP_DOT_COUNT))
+    : 0;
+  const width = mapVisual.clientWidth;
+  const height = mapVisual.clientHeight;
+  if (!width || !height) {
+    return;
+  }
+
+  const pixelRatio = window.devicePixelRatio || 1;
+  const canvasWidth = Math.round(width * pixelRatio);
+  const canvasHeight = Math.round(height * pixelRatio);
+  if (infectionCanvas.width !== canvasWidth || infectionCanvas.height !== canvasHeight) {
+    infectionCanvas.width = canvasWidth;
+    infectionCanvas.height = canvasHeight;
+  }
+
+  infectionContext.setTransform(canvasWidth / 300, 0, 0, canvasHeight / 340, 0, 0);
+  infectionContext.clearRect(0, 0, 300, 340);
+  infectionContext.beginPath();
+  TUCUMAN_OUTLINE.forEach(([x, y], index) => {
+    if (index === 0) {
+      infectionContext.moveTo(x, y);
+    } else {
+      infectionContext.lineTo(x, y);
+    }
+  });
+  infectionContext.closePath();
+  infectionContext.clip();
+  infectionContext.beginPath();
+  for (let index = 0; index < activeDots; index += 1) {
+    const dot = mapDots[index];
+    infectionContext.moveTo(dot.x + dot.radius, dot.y);
+    infectionContext.arc(dot.x, dot.y, dot.radius, 0, Math.PI * 2);
+  }
+  infectionContext.fillStyle = "rgb(232 93 98 / 78%)";
+  infectionContext.fill();
+}
+
+function updateMapForDay(day) {
+  if (!currentSimulation) {
+    return;
+  }
+
+  const sampleIndex = Math.round(
+    day / currentSimulation.days * (currentSimulation.samples.length - 1)
+  );
+  const sample = currentSimulation.samples[sampleIndex];
+  if (!sample) {
+    throw new Error(`No hay una muestra de la simulación para el día ${day}.`);
+  }
+
+  mapDayValue.value = String(day);
+  mapDaySlider.setAttribute("aria-valuetext", `Día ${day} de ${currentSimulation.days}`);
+  showMapSample(sample, currentSimulation);
+}
+
+function updateMapForSimulation(result) {
+  mapDaySlider.max = String(result.days);
+  mapDaySlider.value = "0";
+  mapDayEnd.textContent = `Día ${result.days}`;
+  updateMapForDay(0);
 }
 
 function drawChart(result) {
@@ -230,6 +400,7 @@ form.addEventListener("submit", (event) => {
   currentSimulation = simulate(parameters);
   updateMetrics(currentSimulation);
   drawChart(currentSimulation);
+  updateMapForSimulation(currentSimulation);
 });
 
 document.querySelector("#reset-button").addEventListener("click", () => {
@@ -242,11 +413,29 @@ document.querySelector("#reset-button").addEventListener("click", () => {
   currentSimulation = simulate(DEFAULTS);
   updateMetrics(currentSimulation);
   drawChart(currentSimulation);
+  updateMapForSimulation(currentSimulation);
 });
 
 fields.population.addEventListener("input", () => {
   fields.initialInfected.max = fields.population.value;
 });
+
+mapDaySlider.addEventListener("input", () => {
+  updateMapForDay(Number(mapDaySlider.value));
+});
+
+function updateBackToTopVisibility() {
+  backToTopButton.classList.toggle("is-visible", window.scrollY > 300);
+}
+
+window.addEventListener("scroll", updateBackToTopVisibility, { passive: true });
+backToTopButton.addEventListener("click", () => {
+  const behavior = window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    ? "auto"
+    : "smooth";
+  window.scrollTo({ top: 0, behavior });
+});
+updateBackToTopVisibility();
 
 canvas.addEventListener("pointermove", showTooltip);
 canvas.addEventListener("pointerleave", () => {
@@ -254,12 +443,29 @@ canvas.addEventListener("pointerleave", () => {
 });
 
 if ("ResizeObserver" in window) {
-  resizeObserver = new ResizeObserver(() => drawChart(currentSimulation));
+  resizeObserver = new ResizeObserver(() => {
+    drawChart(currentSimulation);
+    const selectedDay = Number(mapDaySlider.value);
+    if (currentSimulation && selectedDay >= 0) {
+      const sampleIndex = Math.round(
+        selectedDay / currentSimulation.days * (currentSimulation.samples.length - 1)
+      );
+      const sample = currentSimulation.samples[sampleIndex];
+      if (sample) {
+        scheduleMapRender(sample, currentSimulation);
+      }
+    }
+  });
   resizeObserver.observe(chartContainer);
+  resizeObserver.observe(mapVisual);
 } else {
-  window.addEventListener("resize", () => drawChart(currentSimulation));
+  window.addEventListener("resize", () => {
+    drawChart(currentSimulation);
+    updateMapForDay(Number(mapDaySlider.value));
+  });
 }
 
 currentSimulation = simulate(DEFAULTS);
 updateMetrics(currentSimulation);
 drawChart(currentSimulation);
+updateMapForSimulation(currentSimulation);
