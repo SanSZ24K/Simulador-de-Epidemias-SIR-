@@ -9,6 +9,7 @@
       content="Explora cómo cambian los casos de una epidemia con el modelo SIR."
     >
     <title>Simulador SIR | Laboratorio de epidemias</title>
+    <link rel="icon" type="image/png" href="favicon.png">
     <link rel="stylesheet" href="styles.css">
     <script src="app.js" defer></script>
   </head>
@@ -146,6 +147,7 @@
               <div>
                 <p class="eyebrow">PROPAGACIÓN ILUSTRATIVA</p>
                 <h2 id="map-title">Infección en Tucumán</h2>
+                <a class="map-attribution" href="https://www.openstreetmap.org/relation/153558" target="_blank" rel="noopener noreferrer">© OpenStreetMap</a>
               </div>
               <span class="map-legend"><i aria-hidden="true"></i> Infectados</span>
             </div>
@@ -167,7 +169,6 @@
               </div>
             </div>
             <p class="map-status" id="map-status" aria-live="polite"></p>
-            <p class="map-disclaimer">Los puntos muestran la proporción de infectados, no ubicaciones reales. Silueta basada en <a href="https://www.openstreetmap.org/relation/153558" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> (ODbL).</p>
           </article>
 
           <article class="explanation-card">
@@ -184,7 +185,9 @@
           </article>
         </section>
       </div>
-      <footer class="page-footer">Una herramienta para aprender, experimentar y hacer preguntas.</footer>
+      <footer class="page-footer">
+        <span>Una herramienta para aprender, experimentar y hacer preguntas.</span>
+      </footer>
     </main>
     <button class="back-to-top" id="back-to-top" type="button" aria-label="Volver a la parte superior" title="Volver arriba">
       <span aria-hidden="true">↑</span>

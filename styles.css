@@ -571,19 +571,6 @@ h1 {
   font-weight: 700;
 }
 
-.map-disclaimer {
-  margin: 5px 0 0;
-  color: #929caf;
-  font-size: 9px;
-  line-height: 1.5;
-}
-
-.map-disclaimer a {
-  color: #5479d1;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-}
-
 .explanation-card {
   display: flex;
   gap: 13px;
@@ -626,10 +613,20 @@ h1 {
 }
 
 .page-footer {
+  display: grid;
+  gap: 5px;
   padding: 24px 0 30px;
   color: #9aa4b4;
   font-size: 10px;
   text-align: center;
+}
+
+.map-heading .map-attribution {
+  display: inline-block;
+  margin-top: 5px;
+  color: #929caf;
+  font-size: 9px;
+  text-underline-offset: 2px;
 }
 
 .back-to-top {
